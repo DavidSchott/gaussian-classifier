@@ -34,21 +34,50 @@ def vecDist(v1,f2):
         min_dist = min(eucdist(v,v1),min_dist)
     return min_dist
 
-# Returns closest vector between vector and feature-vector
+# Returns tuple consisting of (closestvector, index of feature vector)
 def closestVec(v1,f2):
     min_dist = float('inf')
-    v3 = []
+    temp_dist = 0.0
+    v3 = ([],0)
+    i = 0
     for v in f2:
-        if (eucdist(v,v1) <= min_dist):
-            v3 = v
-            min_dist = min(eucdist(v,v1),min_dist)
+        i = i+1
+        temp_dist = eucdist(v,v1)
+        if (temp_dist <= min_dist):
+            min_dist = temp_dist
+            v3 = [v, i]
     return v3
 
-def closestVecFeat(f1,f2):
+"""Returns an array of size 5000 consisting of [closest-vector to each v, corresponding index, corresponding fold-class description]
+   Parameters: f1 = feature-vector we wish to classify
+               fs = other training feature-vectors, arranged in increasing order starting from lowest fold-number
+               f1Index = the fold-number of f1."""
+#WRONG
+def computeFeatClasses(f1,fs,f1Index):
+    vArr = [[],0,""]
+    vecNo = 0
     for v in f1:
-        closestVec(v,f2)
+        min_dist = float('inf')
+        featNo = 0
 
-#def myKnn():
+        for f in fs:
+            featNo = featNo + 1
+            if (featNo == f1Index):
+                featNo = featNo + 1
+
+            temp_dist = vecDist(v,f)
+
+            if (temp_dist <= min_dist):
+                min_dist = temp_dist
+                featClass = "fold"+ str(featNo) + "_class"
+                vArr.append(v,vecNo,featClass)
+
+        vecNo = vecNo + 1
+
+    return vArr
+
+
+
 
 #Used for testing and debugging
 def main():
@@ -56,4 +85,4 @@ def main():
     f2 = data.get("fold2_features")
 
     min = closestVec(v1,f2)
-    print(min)
+    return (min)
