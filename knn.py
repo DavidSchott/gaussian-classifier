@@ -1,7 +1,5 @@
 __author__ = 's1329380'
-from pprint import pprint
 import scipy.io
-#from numpy import *
 import numpy as np
 import math
 
@@ -56,7 +54,7 @@ def computeFeatClasses(f1,f1Index):
     vArr = [([],0)]
     vecNo = 0
     for v in f1:
-        print("Vector "+vecNo + " of fold_class: "+f1Index) #used for testing
+        print("Vector "+str(vecNo) + " of fold_class: "+ str(f1Index)) #used for testing
         min_dist = float('inf')
         foldNo = 0
 
@@ -83,7 +81,7 @@ def computeFeatClasses(f1,f1Index):
 def knn1():
     foldNo = 0
     #Dict with keys "fold'No'_features", items = array [vector of fold'No'_features, classification number]
-    vClass_dict = {"",[]}
+    vClass_dict = {"" : []}
     while (foldNo < 10):
         foldNo = foldNo + 1
         foldname = "fold" + str(foldNo)+"_features"
