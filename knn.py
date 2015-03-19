@@ -48,29 +48,33 @@ def closestVec(v1,f2):
             v3 = [v, i]
     return v3
 
-"""Returns an array of size 5000 consisting of [closest-vector to each v, corresponding index, corresponding fold-class description]
+"""Returns an array of size 5000 consisting of [vector from features, corresponding classification]
    Parameters: f1 = feature-vector we wish to classify
                fs = other training feature-vectors, arranged in increasing order starting from lowest fold-number
                f1Index = the fold-number of f1."""
-#WRONG
-def computeFeatClasses(f1,fs,f1Index):
-    vArr = [[],0,""]
+def computeFeatClasses(f1,f1Index):
+    vArr = [([],0)]
     vecNo = 0
     for v in f1:
         min_dist = float('inf')
-        featNo = 0
+        foldNo = 0
 
-        for f in fs:
-            featNo = featNo + 1
-            if (featNo == f1Index):
-                featNo = featNo + 1
+        while (foldNo < 10):
+            #Ensure correct foldNo
+            foldNo = foldNo + 1
+            if (foldNo == f1Index):
+                foldNo = foldNo + 1
 
+            #Access correct dict-entry
+            f = data.get("fold"+str(foldNo)+"_features")
+            #Compute lowest distance between vector and entire feature-vector
             temp_dist = vecDist(v,f)
 
             if (temp_dist <= min_dist):
                 min_dist = temp_dist
-                featClass = "fold"+ str(featNo) + "_class"
-                vArr.append(v,vecNo,featClass)
+                class_entry = "fold"+ str(foldNo) + "_class"
+                fold_class = data.get(class_entry)[vecNo]
+                vArr.append(v,fold_class)
 
         vecNo = vecNo + 1
 
@@ -84,5 +88,5 @@ def main():
     v1 = data.get("fold1_features")[1]
     f2 = data.get("fold2_features")
 
-    min = closestVec(v1,f2)
+    min = computeFeatClasses(f2,2)
     return (min)
