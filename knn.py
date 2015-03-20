@@ -1,6 +1,7 @@
 __author__ = 's1329380'
 import scipy.io
 import numpy as np
+from scipy.spatial.distance import cdist as fastdist # finds distances of all matrices
 import math
 
 #Dict containing data
@@ -10,7 +11,7 @@ data = scipy.io.loadmat("cifar10.mat")
 def __init__(self):
     self.data = scipy.io.loadmat("cifar10.mat")
 
-# Methods for knn-classification:
+# Methods for OLD knn-classification:
 #Norm
 def myNorm(v1):
     sum = 0.0
@@ -18,12 +19,10 @@ def myNorm(v1):
         sum += math.pow(no,2)
     return math.pow(sum,0.5)
 
-
 #Euclidean distance
 def eucdist(v1,v2):
     v3 = np.subtract(v1,v2)
     return myNorm(v3)
-
 
 #Returns lowest distance of one vector and a feature matrix
 def vecDist(v1,f2):
@@ -35,7 +34,6 @@ def vecDist(v1,f2):
 # Returns tuple consisting of (closest distance, index of corresponding feature matrix)
 def closestVec(v1,f2):
     min_dist = float('inf')
-    temp_dist = 0.0
     v3 = ([],0)
     i = 0
     for v in f2:
@@ -78,7 +76,7 @@ def computeFeatClasses(f1,f1Index):
     return vArr
 
 """ Returns an dictionary with key "fold'No'_features", corr. item = array of size 5000 [vector of fold'No'_features, classification number]"""
-def knn1():
+def knn1Slow():
     foldNo = 0
     #Dict with keys "fold'No'_features", items = array [vector of fold'No'_features, classification number]
     vClass_dict = {"" : []}
@@ -91,11 +89,28 @@ def knn1():
     return vClass_dict
 
 
+""" New Faster, improved knn-classification using cdist"""
+# Returns tuple consisting of (closest distance, index of corresponding feature matrix)
+def getDistances(f1,f2):
+    """Computes and stores all distances in the form [ [dist(f1_vec1, f2_vec1), dist(f1_vec1, f2_vec2),.., dist(f1_vec1, f2_vec5000)],
+                                                       [dist(f1_vec2, f2_vec1), ...]
+    dists = fastdist(f1,f2)                            [dist(f1_vec5000
 
-#Used for testing and debugging
+"""Used for testing and debugging"""
+f1 = data.get("fold1_features")
+f2 = data.get("fold2_features")
+
 def main():
-    v1 = data.get("fold1_features")[1]
-    f2 = data.get("fold2_features")
+    m1 = np.asmatrix([[4.,2.,0.6],
+                     [4.2,2.1,0.59],
+                     [3.9,2.,0.58],
+                     [4.3,2.1,0.62],
+                     [4.1,2.2,0.63]])
 
-    min = computeFeatClasses(f2,2)
-    return (min)
+    m2 = np.asmatrix([[4.,2.,0.6],
+                     [1,1,1],
+                     [0,0,0],
+                     [0,0,0],
+                     [4.1,2.2,0.63]])
+
+    return fastdist(f1,f2)
