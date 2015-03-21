@@ -150,14 +150,14 @@ def getAllDistances(f1,f1foldNo):
         f = data.get(fkey)
         f1_fdists = fastdist(f1,f)
         distdict[fkey] = f1_fdists
-
+        print("Completed computing distances of: "+ fkey) # used for testing
     return distdict
 
 def closestDistAll2(f1,f1foldNo):
     dists_dict = getAllDistances(f1,f1foldNo)
     vArr = np.empty(5000, dtype=object) #store closest vector for each vector in f1.
     f1vecNo = 0
-
+    foldNo = 0
     while (f1vecNo < 5000):
         j = 0 #index of closest vector to f1 in some other f
         min_dist = float('inf')
@@ -176,7 +176,7 @@ def closestDistAll2(f1,f1foldNo):
             for dist in f_dists[f1vecNo]:
                 if (dist <= min_dist):
                     min_dist = dist
-                    vArr[f1vecNo] = (min_dist, j, classes[foldNo-1][j], # class_entry = "fold"+ str(foldNo) + "_classes", class_entry[j][0]
+                    vArr[f1vecNo] = (min_dist, j, #classes[foldNo-1][j], # class_entry = "fold"+ str(foldNo) + "_classes", class_entry[j][0]
                                      str(j)+ "'th vector in fold_"+str(foldNo)+"features") #closest vector of f2 to f1[f1vecNo]
                 j = j + 1
         f1vecNo = f1vecNo + 1
@@ -249,4 +249,4 @@ def main():
                      [0,0,0],
                      [4.1,2.2,0.63]])
 
-    return closestDistAll(f1,1)
+    return closestDistAll2(f1,1)
