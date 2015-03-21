@@ -2,7 +2,7 @@ __author__ = 's1329380'
 import scipy.io
 import numpy as np
 from scipy.spatial.distance import cdist as fastdist # finds distances of all matrices
-import math
+import math, timeit
 
 #Dict containing data
 data = scipy.io.loadmat("cifar10.mat")
@@ -128,13 +128,12 @@ def closestDist(f1,f2,f2_foldNo):
                 min_dist = dist
                 vArr[f1vecNo] = (min_dist, j,feats[f2_foldNo-1][j])
                                  #feats[f2_foldNo][j],j) #str(j)+ "'th vector in fold_"+str(f2_foldNo)+"features") #closest vector of f2 to f1[f1vecNo]
-            #print("Vector "+str(j) + " of fold_class: "+ str(f2_foldNo)) #used for testing
-            print(f1vecNo)
+            print(str(f1vecNo) + "completed of fold_class" + str(f2_foldNo))
         f1vecNo = f1vecNo + 1
     return vArr
 
-
-def closestDistAll(f1,f1index):
+"""Returns closest vectors of f1 feature matrix with corresponding fold-class."""
+def closestDistAll(f1,f1foldNo):
     min_dist = float('inf')
     foldNo = 0
     vArr = [([],0)]
@@ -142,7 +141,7 @@ def closestDistAll(f1,f1index):
     while (foldNo < 10):
         foldNo = foldNo + 1
 
-        if (foldNo == f1index):
+        if (foldNo == f1foldNo):
             foldNo = foldNo + 1
 
         f = data.get("fold"+str(foldNo)+"_features")
@@ -157,6 +156,21 @@ def closestDistAll(f1,f1index):
     return vArr
 
 
+""" Returns an dictionary with key "fold'No'_features", corr. item = array of size 5000 [vector of fold'No'_features, classification number]"""
+def knn1():
+    foldNo = 0
+    #Dict with keys "fold'No'_features", items = array [vector of fold'No'_features, classification number]
+    vClass_dict = {"" : []}
+    while (foldNo < 10):
+        foldNo = foldNo + 1
+        foldname = "fold" + str(foldNo)+"_features"
+        f = data.get(foldname)
+        start = timeit.timeit()
+        vClass_dict[foldname] = closestDistAll(f,foldNo)
+        end = timeit.timeit()
+        print("completed in time:")
+        print(end - start)
+    return vClass_dict
 
 
 """Used for testing and debugging"""
