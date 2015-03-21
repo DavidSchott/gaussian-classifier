@@ -7,6 +7,27 @@ import math
 #Dict containing data
 data = scipy.io.loadmat("cifar10.mat")
 
+#Returns all fold_features, listed in order 1..10. Thus return array of the form [feature vector[vector],.. ]
+def getfeats():
+    foldNo = 0
+    feat_arr = []
+    while (foldNo < 10):
+        foldNo = foldNo + 1
+        f = (data.get("fold"+str(foldNo)+"_features"))
+        feat_arr.append(f)
+    return np.array(feat_arr)
+
+def getclasses():
+    foldNo = 0
+    class_arr = []
+    while (foldNo < 10):
+        foldNo = foldNo + 1
+        f = (data.get("fold"+str(foldNo)+"_classes"))
+        class_arr.append(f)
+    return np.array(class_arr)
+
+feats = getfeats() #contains all feature vectors
+classes = getclasses() #contains classes
 # Constructor
 def __init__(self):
     self.data = scipy.io.loadmat("cifar10.mat")
@@ -46,7 +67,6 @@ def closestVec(v1,f2):
 
 """Returns an array of size 5000 consisting of [vector from features matrix, corresponding classification]
    Parameters: f1 = feature-vector we wish to classify
-               fs = other training feature-vectors, arranged in increasing order starting from lowest fold-number
                f1Index = the fold-number of f1."""
 def computeFeatClasses(f1,f1Index):
     vArr = [([],0)]
@@ -90,16 +110,61 @@ def knn1Slow():
 
 
 """ New Faster, improved knn-classification using cdist"""
-# Returns tuple consisting of (closest distance, index of corresponding feature matrix)
-def getDistances(f1,f2):
-    """Computes and stores all distances in the form [ [dist(f1_vec1, f2_vec1), dist(f1_vec1, f2_vec2),.., dist(f1_vec1, f2_vec5000)],
-                                                       [dist(f1_vec2, f2_vec1), ...]
-    dists = fastdist(f1,f2)                            [dist(f1_vec5000
+
+# Returns array consisting of tuples(closest distance, index of corresponding feature matrix vector)
+def closestDist(f1,f2,f2_foldNo):
+    """Computes and stores all distances in the 5000x5000 matrix [ [dist(f1_vec1, f2_vec1), dist(f1_vec1, f2_vec2),.., dist(f1_vec1, f2_vec5000)],
+                                                                 [dist(f1_vec2, f2_vec1), ...]
+                                                                 [dist(f1_vec5000, f2_vec1), dist(f1_vec5000, f2_vec2), ... , dist(f1_vec5000, f2_vec5000)] ]"""
+    dists = fastdist(f1,f2)
+    vArr = np.empty(5000, dtype=object) #store closest vector of f2 for each vector in f1.
+    f1vecNo = 0
+    while (f1vecNo < 5000):
+        j = 0
+        min_dist = float('inf')
+        for dist in dists[f1vecNo]:
+            j = j + 1
+            if (dist <= min_dist):
+                min_dist = dist
+                vArr[f1vecNo] = (min_dist, j,feats[f2_foldNo-1][j])
+                                 #feats[f2_foldNo][j],j) #str(j)+ "'th vector in fold_"+str(f2_foldNo)+"features") #closest vector of f2 to f1[f1vecNo]
+            #print("Vector "+str(j) + " of fold_class: "+ str(f2_foldNo)) #used for testing
+            print(f1vecNo)
+        f1vecNo = f1vecNo + 1
+    return vArr
+
+
+def closestDistAll(f1,f1index):
+    min_dist = float('inf')
+    foldNo = 0
+    vArr = [([],0)]
+
+    while (foldNo < 10):
+        foldNo = foldNo + 1
+
+        if (foldNo == f1index):
+            foldNo = foldNo + 1
+
+        f = data.get("fold"+str(foldNo)+"_features")
+        #Compute lowest distance between vector and entire feature-vector, return distance and feature-vector.
+        temp_tuple = closestDist(f1,f,foldNo)
+
+        if (temp_tuple[0] <= min_dist):
+            min_dist = temp_tuple[0]
+            class_entry = "fold"+ str(foldNo) + "_classes"
+            fold_class = data.get(class_entry)[temp_tuple[1]][0]
+            vArr.append((temp_tuple[2], fold_class))
+    return vArr
+
+
+
 
 """Used for testing and debugging"""
+
 f1 = data.get("fold1_features")
 f2 = data.get("fold2_features")
-
+v1 = closestVec(feats[0][0],f2)
+v2 = closestVec(feats[0][1],f2)
 def main():
     m1 = np.asmatrix([[4.,2.,0.6],
                      [4.2,2.1,0.59],
@@ -113,4 +178,4 @@ def main():
                      [0,0,0],
                      [4.1,2.2,0.63]])
 
-    return fastdist(f1,f2)
+    return closestDistAll(f1,1)
