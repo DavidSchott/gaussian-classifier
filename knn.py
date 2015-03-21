@@ -123,12 +123,13 @@ def closestDist(f1,f2,f2_foldNo):
         j = 0
         min_dist = float('inf')
         for dist in dists[f1vecNo]:
-            j = j + 1
+
             if (dist <= min_dist):
                 min_dist = dist
                 vArr[f1vecNo] = (min_dist, j,feats[f2_foldNo-1][j])
                                  #feats[f2_foldNo][j],j) #str(j)+ "'th vector in fold_"+str(f2_foldNo)+"features") #closest vector of f2 to f1[f1vecNo]
-            print(str(f1vecNo) + "completed of fold_class" + str(f2_foldNo))
+            j = j + 1
+        print(str(f1vecNo) + " completed of fold_features" + str(f2_foldNo))
         f1vecNo = f1vecNo + 1
     return vArr
 
@@ -136,7 +137,7 @@ def closestDist(f1,f2,f2_foldNo):
 def closestDistAll(f1,f1foldNo):
     min_dist = float('inf')
     foldNo = 0
-    vArr = [([],0)]
+    vArr = []
 
     while (foldNo < 10):
         foldNo = foldNo + 1
@@ -146,13 +147,13 @@ def closestDistAll(f1,f1foldNo):
 
         f = data.get("fold"+str(foldNo)+"_features")
         #Compute lowest distance between vector and entire feature-vector, return distance and feature-vector.
-        temp_tuple = closestDist(f1,f,foldNo)
-
-        if (temp_tuple[0] <= min_dist):
-            min_dist = temp_tuple[0]
-            class_entry = "fold"+ str(foldNo) + "_classes"
-            fold_class = data.get(class_entry)[temp_tuple[1]][0]
-            vArr.append((temp_tuple[2], fold_class))
+        temp_tuple_arr = closestDist(f1,f,foldNo)
+        for temp_tuple in temp_tuple_arr:
+            if (temp_tuple[0] <= min_dist):
+                min_dist = temp_tuple[0]
+                class_entry = "fold"+ str(foldNo) + "_classes"
+                fold_class = data.get(class_entry)[temp_tuple[1]][0]
+                vArr.append((temp_tuple[2], fold_class))
     return vArr
 
 
