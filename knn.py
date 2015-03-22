@@ -141,7 +141,7 @@ def closestDist(f1,f2,f2_foldNo):
 def getAllDistances(f1,f1foldNo):
     foldNo = 0
     distdict = {}
-    while (foldNo < 5):
+    while (foldNo < 10):
         foldNo = foldNo + 1
 
         if (foldNo == f1foldNo):
@@ -153,68 +153,41 @@ def getAllDistances(f1,f1foldNo):
         print("Completed computing distances of: "+ fkey) # used for testing
     return distdict
 
-def closestDistAll2(f1,f1foldNo):
+"""Returns an array of tuples of the form (vector of f1, estimated fold_class of f1)"""
+def computeFoldClasses1(f1,f1foldNo):
     dists_dict = getAllDistances(f1,f1foldNo)
     vArr = np.empty(5000, dtype=object) #store closest vector for each vector in f1.
-    f1vecNo = 0
-    foldNo = 0
-    foldNo_perm = 0
+    f1vec_index = 0
 
-    while (f1vecNo < 5000):
-        #fvecNo = 0 #index of closest vector to f1 in some other f
+    while (f1vec_index < 5000):
+        #initialize/reset all necessary variables for closest vector
         min_dist = float('inf')
         fvecNo_perm = 0
-
-        while (foldNo < 5):
+        foldNo = 0
+        foldNo_perm = 0
+        while (foldNo < 10):
             foldNo = foldNo + 1
             if (foldNo == f1foldNo):
                 foldNo = foldNo + 1
 
-            #Begin looking through dict
+            #Gather dict for current fold
             fkey = "fold"+str(foldNo)+"_features"
             f_dists = dists_dict[fkey]
-            fvecNo = 0
-            """iterate through dict:"""
-            for dist in f_dists[f1vecNo]: #for vector 0
+            fvec_index = 0
+            """iterate through dict to find closest point"""
+            for dist in f_dists[f1vec_index]: #for vector 0
                 if (dist <= min_dist):
-                    print("Found new minimum")
                     min_dist = min(dist,min_dist)
-                    fvecNo_perm = fvecNo
+                    fvecNo_perm = fvec_index
                     foldNo_perm = foldNo
-                fvecNo = fvecNo + 1
-        vArr[f1vecNo] = (min_dist, fvecNo_perm, #classes[foldNo-1][fvecNo][0], # class_entry = "fold"+ str(foldNo) + "_classes", class_entry[fvecNo][0]
-                                     str(fvecNo_perm)+ "'th vector in fold_"+str(foldNo_perm)+"features") #closest vector of f2 to f1[f1vecNo]
-        f1vecNo = f1vecNo + 1
-        print("Vector "+str(f1vecNo) + " completed of fold_class: "+ str(f1foldNo)) #used for testing
+                fvec_index = fvec_index + 1
+        vArr[f1vec_index] = (f1[f1vec_index],classes[foldNo_perm-1][fvecNo_perm])
+        #(min_dist, fvecNo_perm, classes[foldNo_perm-1][fvecNo_perm][0]) # class_entry = "fold"+ str(foldNo) + "_classes", class_entry[fvec_index][0]
+                                     #str(fvecNo_perm)+ "'th vector in fold_"+str(foldNo_perm)+"features") #closest vector of f2 to f1[f1vec_index]
+        f1vec_index = f1vec_index + 1
+        print("Vector "+str(f1vec_index) + " completed of fold_class: "+ str(f1foldNo)) #used for testing
 
     return vArr
-
-
-"""Returns closest vectors of f1 feature matrix with corresponding fold-class."""
-def closestDistAll(f1,f1foldNo):
-    min_dist = float('inf')
-    foldNo = 0
-    vArr = []
-    dists_arr = []
-    while (foldNo < 10):
-        foldNo = foldNo + 1
-
-        if (foldNo == f1foldNo):
-            foldNo = foldNo + 1
-
-        f = data.get("fold"+str(foldNo)+"_features")
-        #Compute lowest distance between vector and entire feature-vector, return distance and feature-vector.
-        temp_tuple_arr = closestDist(f1,f,foldNo)
-        dists_arr.append(temp_tuple_arr)
-
-        for temp_tuple in temp_tuple_arr:
-            if (temp_tuple[0] <= min_dist):
-                min_dist = temp_tuple[0]
-                class_entry = "fold"+ str(foldNo) + "_classes"
-                fold_class = data.get(class_entry)[temp_tuple[1]][0]
-                vArr.append((temp_tuple[2], fold_class))
-    return vArr
-
 
 
 
@@ -222,14 +195,14 @@ def closestDistAll(f1,f1foldNo):
 """ Returns an dictionary with key "fold'No'_features", corr. item = array of size 5000 [vector of fold'No'_features, classification number]"""
 def knn1():
     foldNo = 0
-    #Dict with keys "fold'No'_features", items = array [vector of fold'No'_features, classification number]
+    #Dict with keys "fold'No'_features" : items = array [given vector of fold'No'_features, corresponding classification number]
     vClass_dict = {"" : []}
     while (foldNo < 10):
         foldNo = foldNo + 1
         foldname = "fold" + str(foldNo)+"_features"
         f = data.get(foldname)
         start = timeit.timeit()
-        vClass_dict[foldname] = closestDistAll(f,foldNo)
+        vClass_dict[foldname] = computeFoldClasses1(f,foldNo)
         end = timeit.timeit()
         print("completed in time:")
         print(end - start)
@@ -255,4 +228,32 @@ def main():
                      [0,0,0],
                      [4.1,2.2,0.63]])
 
-    return closestDistAll2(f1,1)
+    return computeFoldClasses1(f1,1)
+
+
+# Redundant code
+"""
+Returns closest vectors of f1 feature matrix with corresponding fold-class.
+def closestDistAll(f1,f1foldNo):
+    min_dist = float('inf')
+    foldNo = 0
+    vArr = []
+    dists_arr = []
+    while (foldNo < 10):
+        foldNo = foldNo + 1
+
+        if (foldNo == f1foldNo):
+            foldNo = foldNo + 1
+
+        f = data.get("fold"+str(foldNo)+"_features")
+        #Compute lowest distance between vector and entire feature-vector, return distance and feature-vector.
+        temp_tuple_arr = closestDist(f1,f,foldNo)
+        dists_arr.append(temp_tuple_arr)
+
+        for temp_tuple in temp_tuple_arr:
+            if (temp_tuple[0] <= min_dist):
+                min_dist = temp_tuple[0]
+                class_entry = "fold"+ str(foldNo) + "_classes"
+                fold_class = data.get(class_entry)[temp_tuple[1]][0]
+                vArr.append((temp_tuple[2], fold_class))
+    return vArr"""
