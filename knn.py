@@ -151,17 +151,15 @@ def knn1():
 def confusionMatrix(dict):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [np.empty(10, dtype=object)]
-    j = 1
+    matrix = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
     for key in dict.keys():
         i = 0
-        for tuple in dict[key]:
-            classskey = "fold"+str(j)+"_classes"
-            real_class = data[classskey][i][0]
-            predicted_class = tuple[i][1]
+        for tuple in dict[key]: #tuple = dict["fold1_features"][0] , real_class = data
+            classskey = key[:-8] + "classes"
+            real_class = data[classskey][i][0]#.astype(np.int64)
+            predicted_class = tuple[1][0]#.astype(np.int64)
             matrix[real_class-1][predicted_class-1] += 1
             i +=1
-        j += 1
     return matrix
 
 def totalPredAcc(conf_matrix):
