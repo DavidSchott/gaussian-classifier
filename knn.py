@@ -69,11 +69,13 @@ def closestVec(v1,f2):
 
 """Improved knn-classification using cdist"""
 
-""" Computes and stores all distances in the 5000x5000 matrix [
- [dist(f1_vec1, f2_vec1), dist(f1_vec1, f2_vec2),.., dist(f1_vec1, f2_vec5000)],
- [dist(f1_vec2, f2_vec1), ...]
- [dist(f1_vec5000, f2_vec1), dist(f1_vec5000, f2_vec2), ... , dist(f1_vec5000, f2_vec5000)]
- ... dist(f1_vec1, f10_vec1), dist(]
+""" Computes and stores all distances in the  9x5000x5000 matrix [
+ [dist(f1_vec1, f2_vec1), dist(f1_vec1, f2_vec2),.., dist(f1_vec1, f2_vec5000)],            = 5000
+ [dist(f1_vec2, f2_vec1), ... dist(f1_vec2, f2_vec5000)],...,                               = 2x5000
+ [dist(f1_vec5000, f2_vec1), dist(f1_vec5000, f2_vec2), ... , dist(f1_vec5000, f2_vec5000)] = 5000x5000
+ ...
+ [dist(f1_vec1, f10_vec1), dist(f1_vec1, f10_vec5000)]                                      = 9x5000x5000
+ ]
  for each feature_class different to fold"f1foldNo"_features in a dict."""
 def getAllDistances(f1,f1foldNo):
     foldNo = 0
@@ -149,7 +151,7 @@ def knn1():
 def confusionMatrix(dict):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
+    matrix = [np.empty(10, dtype=object)]
     j = 1
     for key in dict.keys():
         i = 0
@@ -167,12 +169,10 @@ def totalPredAcc(conf_matrix):
         sum += conf_matrix[i][i]
     return  sum / 50000.0
 
-
 def computeFoldClassesN(f1, f1foldNo,N):
     dists_dict = getAllDistances(f1,f1foldNo)
     vArr = np.empty(5000, dtype=object) #store closest vector for each vector in f1.
     f1vec_index = 0
-
     while (f1vec_index < 5000):
         #initialize/reset all necessary variables for closest vector
         min_dist = float('inf')
