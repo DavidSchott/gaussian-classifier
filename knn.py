@@ -155,12 +155,17 @@ def confusionMatrix(dict):
         i = 0
         for tuple in dict[key]:
             classskey = "fold"+str(j)+"_classes"
-            real_class = data[classskey][i][0] #at risk add [0]
-            predicted_class = tuple[i][1][0]
+            real_class = data[classskey][i][0]
+            predicted_class = tuple[i][1]
             matrix[real_class-1][predicted_class-1] += 1
             i +=1
         j += 1
     return matrix
+
+def totalPredAcc(conf_matrix):
+    for i in range(len(conf_matrix)):
+        sum += conf_matrix[i][i]
+    return  sum / 50000.0
 
 
 def computeFoldClassesN(f1, f1foldNo,N):
