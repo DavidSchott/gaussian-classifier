@@ -91,7 +91,7 @@ def getAllDistances(f1,f1foldNo):
         print("Completed computing distances of: "+ fkey) # used for testing
     return distdict
 
-"""Returns an array of tuples of the form (vector of f1, estimated fold_class of f1)"""
+"""Returns an 5000 array of tuples of the form (vector of f1, estimated fold_class of corresponding vector in f1)"""
 def computeFoldClasses1(f1,f1foldNo):
     dists_dict = getAllDistances(f1,f1foldNo)
     vArr = np.empty(5000, dtype=object) #store closest vector for each vector in f1.
@@ -122,12 +122,12 @@ def computeFoldClasses1(f1,f1foldNo):
                     foldNo_perm = foldNo
                 fvec_index = fvec_index + 1
         vArr[f1vec_index] = (f1[f1vec_index],classes[foldNo_perm-1][fvecNo_perm])
-        #(min_dist, fvecNo_perm, classes[foldNo_perm-1][fvecNo_perm][0]) # class_entry = "fold"+ str(foldNo) + "_classes", class_entry[fvec_index][0]
-                                     #str(fvecNo_perm)+ "'th vector in fold_"+str(foldNo_perm)+"features") #closest vector of f2 to f1[f1vec_index]
         f1vec_index = f1vec_index + 1
         print("Vector "+str(f1vec_index) + " completed of fold_class: "+ str(f1foldNo)) #used for testing
     return vArr
 
+ #(min_dist, fvecNo_perm, classes[foldNo_perm-1][fvecNo_perm][0]) # class_entry = "fold"+ str(foldNo) + "_classes", class_entry[fvec_index][0]
+                                     #str(fvecNo_perm)+ "'th vector in fold_"+str(foldNo_perm)+"features") #closest vector of f2 to f1[f1vec_index]
 
 """ Returns an dictionary with key "fold'No'_features", corr. item = array of size 5000 [vector of fold'No'_features, classification number]"""
 def knn1():
@@ -156,11 +156,12 @@ def confusionMatrix(dict):
         for tuple in dict[key]:
             classskey = "fold"+str(j)+"_classes"
             real_class = data[classskey][i][0] #at risk add [0]
-            predicted_class = tuple[1]
+            predicted_class = tuple[i][1][0]
             matrix[real_class-1][predicted_class-1] += 1
             i +=1
         j += 1
     return matrix
+
 
 def computeFoldClassesN(f1, f1foldNo,N):
     dists_dict = getAllDistances(f1,f1foldNo)
