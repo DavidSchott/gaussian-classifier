@@ -156,50 +156,17 @@ def confusionMatrix(dict):
         i = 0
         for tuple in dict[key]: #tuple = dict["fold1_features"][0] , real_class = data
             classskey = key[:-8] + "classes"
-            real_class = data[classskey][i][0]#.astype(np.int64)
-            predicted_class = tuple[1][0]#.astype(np.int64)
+            real_class = data[classskey][i][0]
+            predicted_class = tuple[1][0]
             matrix[real_class-1][predicted_class-1] += 1
             i +=1
     return matrix
-
+#Returns the total classification accuracy for knn-classification
 def totalPredAcc(conf_matrix):
+    sum = 0.0
     for i in range(len(conf_matrix)):
         sum += conf_matrix[i][i]
     return  sum / 50000.0
-
-def computeFoldClassesN(f1, f1foldNo,N):
-    dists_dict = getAllDistances(f1,f1foldNo)
-    vArr = np.empty(5000, dtype=object) #store closest vector for each vector in f1.
-    f1vec_index = 0
-    while (f1vec_index < 5000):
-        #initialize/reset all necessary variables for closest vector
-        min_dist = float('inf')
-        fvecNo_perm = 0
-        foldNo = 0
-        foldNo_perm = 0
-        while (foldNo < 10):
-            foldNo = foldNo + 1
-            if (foldNo == f1foldNo):
-                foldNo = foldNo + 1
-
-            #Gather dict for current fold
-            fkey = "fold"+str(foldNo)+"_features"
-            f_dists = dists_dict[fkey]
-            fvec_index = 0
-            """iterate through dict to find closest N points"""
-            for dist in f_dists[f1vec_index]: #for vector 0
-                if (dist <= min_dist):
-                    min_dist = min(dist,min_dist)
-                    fvecNo_perm = fvec_index
-                    foldNo_perm = foldNo
-                fvec_index = fvec_index + 1
-        vArr[f1vec_index] = (f1[f1vec_index],classes[foldNo_perm-1][fvecNo_perm])
-        f1vec_index = f1vec_index + 1
-        print("Vector "+str(f1vec_index) + " completed of fold_class: "+ str(f1foldNo)) #used for testing
-    return vArr
-
- #(min_dist, fvecNo_perm, classes[foldNo_perm-1][fvecNo_perm][0]) # class_entry = "fold"+ str(foldNo) + "_classes", class_entry[fvec_index][0]
-                                     #str(fvecNo_perm)+ "'th vector in fold_"+str(foldNo_perm)+"features") #closest vector of f2 to f1[f1vec_index]
 
 
 
