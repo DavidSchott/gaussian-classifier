@@ -11,6 +11,7 @@ def mean(m1):
     for sum in sum_cols:
         mean_cols = sum / len(m1)
     return mean_cols
+
 """Takes a set of feature-vectors and returns meanvector"""
 def MyMean(feats):
     sum_cols = 0
@@ -101,22 +102,13 @@ def foldloglikehood(f,foldNo):
         probs[str(i+1)] = tuple
     return probs
 
-"""Sums up the accuracies of foldloglikehood and returns"""
-def covGaussAcc(f,foldNo):
-    tupledict = foldloglikehood(f,foldNo)
-    j = 1
-    for i in range(len(f)):
-        real_class = knn.data["fold"+str(foldNo)+"_classes"][i]
-        if (tupledict[str(i+1)][1] == real_class[0]):
-            j += 1
-    return j/5000.0
 
 """ Returns an dictionary with key "fold'No'_features", corr. item = dict[vecno] = (probability classified as class, predicted class)"""
 def loglikehoodTotal():
     foldNo = 0
     #Dict with keys "fold'No'_features" : items = array [given vector of fold'No'_features, corresponding classification number]
     vClass_dict = {}
-    while (foldNo < 2):
+    while (foldNo < 10):
         foldNo = foldNo + 1
         foldname = "fold" + str(foldNo)+"_features"
         f = knn.data.get(foldname)
@@ -127,14 +119,14 @@ def loglikehoodTotal():
         print(end - start)
     return vClass_dict
 
-"""Builds the confusionMatrix using dict recovered from loglikehoodTotal"""
-def confMatrixGaussFull(dicts):
+"""Builds the confusionMatrix using dict recovered from dict with key "foldno_features" and prob. of item in tuple[1]"""
+def getConfMatrix(dicts):
     # Rows = class i, 1-10
     # columns = classified as class j
     matrix = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
     for key in dicts.keys():
         #i = 0
-        for i in (range(1,5001)):
+        for i in (range(0,5000)):
         #for d in dicts[key]: #d = d[vecno] = (probability, pred. class)
             classskey = key[:-8] + "classes"
             real_class = knn.data[classskey][i][0] -1
@@ -153,7 +145,6 @@ def fullCovGaussAcc(conf_matrix):
     return sum / 50000.0
 
 """----------------------------BEGINNING OF SHARED COVARIANCE MATRIX CALCULATIONS----------------------------"""
-
 """Returns the shared covariance of one fold, by summing up all covariances of other folds and dividing by N"""
 def sharedCov(foldNo):
     cov = [[0 for i in range(len(knn.data["fold1_features"][0]))] for j in range(len(knn.data["fold1_features"][0]))]
@@ -161,7 +152,7 @@ def sharedCov(foldNo):
     for key in dict.keys():
         mean_temp = MyMean(dict[key])
         cov_temp = MyCov(dict[key], mean_temp)
-        np.add(cov, cov_temp)
+        cov = np.add(cov, cov_temp)
     return cov * 0.1
 
 """Generates a dict with keys classNo and corresponding values. Values = (Cov, mean, Inv(Cov), logdet(Cov))"""
@@ -181,6 +172,7 @@ def sharedCovTotal(foldNo):
 def linearDiscrim(vec,tuple):
     return pClassgivenVec(vec,tuple)
 
+"""Returns an dict with keys vec-number and items (probability classified as class, class)"""
 def sharedGaussianModel(f,foldNo):
     gauss = sharedCovTotal(foldNo)
     probs = {}
@@ -198,6 +190,9 @@ def sharedGaussianModel(f,foldNo):
                 tuple = (prob_max, cl_no)
         probs[str(i+1)] = tuple
     return probs
+
+
+
 
 """Sums up the accuracies of foldloglikehood and returns"""
 def sharedCovGaussAcc(f,foldNo):
