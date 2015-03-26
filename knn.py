@@ -33,42 +33,8 @@ classes = getclasses() #contains classes
 def __init__(self):
     self.data = scipy.io.loadmat("cifar10.mat")
 
-# Methods for OLD knn-classification:
-#Norm
-def myNorm(v1):
-    sum = 0.0
-    for no in v1:
-        sum += math.pow(no,2)
-    return math.pow(sum,0.5)
-
-#Euclidean distance
-def eucdist(v1,v2):
-    v3 = np.subtract(v1,v2)
-    return myNorm(v3)
-
-#Returns lowest distance of one vector and a feature matrix
-def vecDist(v1,f2):
-    min_dist = float('inf')
-    for v in f2:
-        min_dist = min(eucdist(v,v1),min_dist)
-    return min_dist
-
-# Returns tuple consisting of (closest distance, index of corresponding feature matrix)
-def closestVec(v1,f2):
-    min_dist = float('inf')
-    v3 = ([],0)
-    i = 0
-    for v in f2:
-        i = i+1
-        temp_dist = eucdist(v,v1)
-        if (temp_dist <= min_dist):
-            min_dist = temp_dist
-            v3 = [min_dist, i]
-    return v3
-
 
 """Improved knn-classification using cdist"""
-
 """ Computes and stores all distances in the  9x5000x5000 matrix [
  [dist(f1_vec1, f2_vec1), dist(f1_vec1, f2_vec2),.., dist(f1_vec1, f2_vec5000)],            = 5000
  [dist(f1_vec2, f2_vec1), ... dist(f1_vec2, f2_vec5000)],...,                               = 2x5000
@@ -98,7 +64,6 @@ def computeFoldClasses1(f1,f1foldNo):
     dists_dict = getAllDistances(f1,f1foldNo)
     vArr = np.empty(5000, dtype=object) #store closest vector for each vector in f1.
     f1vec_index = 0
-
     while (f1vec_index < 5000):
         #initialize/reset all necessary variables for closest vector
         min_dist = float('inf')
@@ -111,7 +76,6 @@ def computeFoldClasses1(f1,f1foldNo):
                 break
             if (foldNo == f1foldNo):
                 foldNo = foldNo + 1
-
             #Gather dict for current fold
             fkey = "fold"+str(foldNo)+"_features"
             f_dists = dists_dict[fkey]
@@ -128,14 +92,11 @@ def computeFoldClasses1(f1,f1foldNo):
         print("Vector "+str(f1vec_index) + " completed of fold_class: "+ str(f1foldNo)) #used for testing
     return vArr
 
- #(min_dist, fvecNo_perm, classes[foldNo_perm-1][fvecNo_perm][0]) # class_entry = "fold"+ str(foldNo) + "_classes", class_entry[fvec_index][0]
-                                     #str(fvecNo_perm)+ "'th vector in fold_"+str(foldNo_perm)+"features") #closest vector of f2 to f1[f1vec_index]
-
 """ Returns an dictionary with key "fold'No'_features", corr. item = array of size 5000 [vector of fold'No'_features, classification number]"""
 def knn1():
     foldNo = 0
     #Dict with keys "fold'No'_features" : items = array [given vector of fold'No'_features, corresponding classification number]
-    vClass_dict = {"" : []}
+    vClass_dict = {}
     while (foldNo < 10):
         foldNo = foldNo + 1
         foldname = "fold" + str(foldNo)+"_features"
@@ -143,12 +104,12 @@ def knn1():
         start = time.time()
         vClass_dict[foldname] = computeFoldClasses1(f,foldNo)
         end = time.time()
-        print("completed in time:")
+        print("completed "+str(foldNo)+" in time:")
         print(end - start)
-    del vClass_dict[""]
     return vClass_dict
 
-def confusionMatrix(dict):
+"""Takes the dictionary returned from knn1() and builds a confusion matrix."""
+def knn1ConfMatrix(dict):
     # Rows = class i, 1-10
     # columns = classified as class j
     matrix = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
@@ -161,14 +122,79 @@ def confusionMatrix(dict):
             matrix[real_class-1][predicted_class-1] += 1
             i +=1
     return matrix
+
 #Returns the total classification accuracy for knn-classification
-def totalPredAcc(conf_matrix):
+def knn1PredAcc(conf_matrix):
     sum = 0.0
     for i in range(len(conf_matrix)):
         sum += conf_matrix[i][i]
-    return  sum / 50000.0
+    return sum / 50000.0
 
+"""Returns an 5000 array of list of the form (estimated fold_class of corresponding vector in f1)"""
+def computeFoldClasses5(f1,f1foldNo):
+    dists_dict = getAllDistances(f1,f1foldNo)
+    vArr = np.empty(5000, dtype=object) #store closest vector for each vector in f1.
+    f1vec_index = 0
+    while (f1vec_index < 5000):
+        #initialize/reset all necessary variables for closest vector
+        min_dist = float('inf')
+        l1 = [min_dist, 0]  # (distance of point, predicted class)
+        l2 = l1
+        l3 = l1
+        l4 = l1
+        l5 = l1
+        foldNo = 0
+        while (foldNo < 10):
+            foldNo = foldNo + 1
+            if(foldNo == f1foldNo and f1foldNo == 10):
+                break
+            if (foldNo == f1foldNo):
+                foldNo = foldNo + 1
+            #Gather dict for current fold
+            fkey = "fold"+str(foldNo)+"_features"
+            f_dists = dists_dict[fkey]
+            fvec_index = 0
+            """iterate through dict to find closest 5 points"""
+            for dist in f_dists[f1vec_index]: #for vector 0
+                if (dist <= l1[0]):
+                    l1[0] = dist
+                    l1[1] = classes[foldNo-1][fvec_index]
+                elif (dist > l1[0] and dist < l2[0]):
+                    l2[0] = dist
+                    l2[1] = classes[foldNo-1][fvec_index]
 
+                elif (dist > l2[0] and dist < l3[0]):
+                    l3[0] = dist
+                    l3[1] = classes[foldNo-1][fvec_index]
+                elif (dist > l3[0] and dist < l4[0]):
+                    l4[0] = dist
+                    l4[1] = classes[foldNo-1][fvec_index]
+                elif (dist > l4[0] and dist < l5[0]):
+                    l5[0] = dist
+                    l5[1] = classes[foldNo-1][fvec_index]
+                fvec_index = fvec_index + 1
+        vArr[f1vec_index] = most_common([l1[1],l2[1],l3[1],l4[1],l5[1]])
+        f1vec_index = f1vec_index + 1
+        print("Vector "+str(f1vec_index) + " completed of fold_class: "+str(f1foldNo)) #used for testing
+    return vArr
+
+# Returns Dict with keys "fold'No'_features" : items = tuple ([class of closest point], [class of 2nd closest point]...)
+def knn5():
+    foldNo = 0
+    vClass_dict = {}
+    while (foldNo < 10):
+        foldNo = foldNo + 1
+        foldname = "fold" + str(foldNo)+"_features"
+        f = data.get(foldname)
+        start = time.time()
+        vClass_dict[foldname] = computeFoldClasses5(f,foldNo)
+        end = time.time()
+        print("completed "+str(foldNo)+" in time:")
+        print(end - start)
+    return vClass_dict
+
+def most_common(lst):
+    return max(set(lst), key=lst.count)
 
 """Used for testing and debugging"""
 f1 = data.get("fold1_features")
