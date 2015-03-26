@@ -173,7 +173,7 @@ def computeFoldClasses5(f1,f1foldNo):
                     l5[0] = dist
                     l5[1] = classes[foldNo-1][fvec_index]
                 fvec_index = fvec_index + 1
-        vArr[f1vec_index] = most_common([l1[1],l2[1],l3[1],l4[1],l5[1]])
+        vArr[f1vec_index] = most_frequent_class([l1,l2,l3,l4,l5])
         f1vec_index = f1vec_index + 1
         print("Vector "+str(f1vec_index) + " completed of fold_class: "+str(f1foldNo)) #used for testing
     return vArr
@@ -193,18 +193,46 @@ def knn5():
         print(end - start)
     return vClass_dict
 
-def most_common(lst):
-    return max(set(lst), key=lst.count)
+#def most_common(lst):
+ #   return max(set(lst), key=lst.count)
+
+"""Given a list of tuples of form(dictance, class),
+find most common class and returns it. If clash, then closest point."""
+def most_frequent_class(lsts):
+    count_class = [0,0,0,0,0,0,0,0,0,0]
+    #Count occurence of classes
+    for lst in lsts:
+        count_class[(lst[1]-1)] += 1
+
+    class_clashes = []
+    max_occ = max(count_class)
+    #Create a list of most frequent classes that occur in class_clashes
+    for i in range(len(count_class)):
+        if (count_class[i] == max_occ):
+            # Now we found a clash
+            class_clashes.append(i+1)
+
+    min_dist = float('inf')
+    most_frequent = class_clashes[0]
+
+    for j in range(len(class_clashes)):
+        for lst in lsts:
+            if (lst[1] == class_clashes[j]):
+                if (lst[0] <= min_dist):
+                    min_dist = lst[0]
+                    most_frequent = class_clashes[j]
+
+    return most_frequent
+
+
+
+
 
 """Used for testing and debugging"""
 f1 = data.get("fold1_features")
 f10 = data.get("fold10_features")
 def main():
-    m1 = np.asmatrix([[4.,2.,0.6],
-                     [4.2,2.1,0.59],
-                     [3.9,2.,0.58],
-                     [4.3,2.1,0.62],
-                     [4.1,2.2,0.63]])
+    m1 = [[23,1],[15,2],[16,1],[23,5],[30,5]]
 
     m2 = np.asmatrix([[4.,2.,0.6],
                      [1,1,1],
@@ -212,4 +240,4 @@ def main():
                      [0,0,0],
                      [4.1,2.2,0.63]])
 
-    return getAllDistances(f10,10)
+    return most_frequent_class(m1)
