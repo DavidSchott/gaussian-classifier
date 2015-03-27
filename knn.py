@@ -12,9 +12,9 @@ knn1_dict = {}
 knn3_dict = {}
 knn5_dict = {}
 
-knn1_conf = [zlist for i in range(11)]
-knn3_conf = [zlist for i in range(11)]
-knn5_conf = [zlist for i in range(11)]
+knn1_conf = [zlist for i in range(10)]
+knn3_conf = [zlist for i in range(10)]
+knn5_conf = [zlist for i in range(10)]
 knn1_acc = 0.0
 knn3_acc = 0.0
 knn5_acc = 0.0
@@ -130,7 +130,7 @@ def knn1():
 def knn1ConfMatrix(dict):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [zlist for i in range(11)]
+    matrix = [zlist for i in range(10)]
     for key in dict.keys():
         i = 0
         for tuple in dict[key]: #tuple = dict["fold1_features"][0] , real_class = data
@@ -210,7 +210,7 @@ def knn5():
 def knn5ConfMatrix(dict):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [zlist for i in range(11)]
+    matrix = [zlist for i in range(10)]
     for key in dict.keys():
         i = 0
         for class_no in dict[key]: #class_no = dict["fold1_features"][i]
@@ -271,7 +271,7 @@ def knn3():
         foldname = "fold" + str(foldNo)+"_features"
         f = data.get(foldname)
         start = time.time()
-        vClass_dict[foldname] = computeFoldClasses5(f,foldNo)
+        vClass_dict[foldname] = computeFoldClasses3(f,foldNo)
         end = time.time()
         print("completed "+str(foldNo)+" in time:")
         print(end - start)
@@ -281,7 +281,7 @@ def knn3():
 def knn3ConfMatrix(dict):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [zlist for i in range(11)]
+    matrix = [zlist for i in range(10)]
     for key in dict.keys():
         i = 0
         for class_no in dict[key]: #class_no = dict["fold1_features"][i]
@@ -368,7 +368,7 @@ def knnAll():
 def confMatrix(dict):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [zlist for i in range(11)]
+    matrix = [zlist for i in range(10)]
     for key in dict.keys():
         i = 0
         for class_no in dict[key]: #class_no = dict["fold1_features"][i]
