@@ -1,0 +1,11 @@
+__author__ = 's1329380'
+import numpy as np
+
+"""Returns the covariance matrix of a set of feature-vectors and corresponding meanvector"""
+def cov(feats, meanvec):
+    cov = [[0 for i in range(len(feats[0]))] for j in range(len(feats[0]))]
+    for i in range(len(feats)):
+        diff = np.asmatrix(feats[i]) - np.asmatrix(meanvec)
+        diffT = diff.transpose()
+        cov = cov + (diffT * diff)
+    return cov * (1.0/(len(feats)-1.0))
