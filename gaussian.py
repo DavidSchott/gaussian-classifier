@@ -4,6 +4,13 @@ import numpy as np
 import knn,time, MyMean,MyCov
 import scipy as sp
 
+zlist = [0,0,0,0,0,0,0,0,0,0]
+
+gauss_shared_conf = [zlist for i in range(10)]
+gauss_full_conf = [zlist for i in range(10)]
+
+gauss_shared_acc = 0.0
+gauss_full_acc = 0.0
 
 """Returns an dictionary with keys "classNo", containing a list of all testing vectors belonging to that foldNo-class"""
 def classDict(foldNo):
@@ -20,8 +27,10 @@ def classDict(foldNo):
         dict[cl_no] = (list_temp)               #a list of lists of vectors, for each clno
     return dict
 
+"""----------------------------BEGINNING OF FULL GAUSSIAN MODEL MATRIX CALCULATIONS----------------------------"""
+
 """Generates a dict with keys classNo and corresponding values. Values = (Cov, mean, Inv(Cov), logdet(Cov))"""
-def computeCovs(foldNo):
+def fullGaussDict(foldNo):
     dict = classDict(foldNo)
     gaussdict = {} # Keys are class-no's. Here we store important values in form (mean,cov,cov^-1, logdet(cov))
     for key in dict.keys():
@@ -33,9 +42,7 @@ def computeCovs(foldNo):
         print("Completed computing gaussianModel of class" + str(key))
     return gaussdict
 
-"""----------------------------BEGINNING OF FULL GAUSSIAN MODEL MATRIX CALCULATIONS----------------------------"""
-
-def pClassgivenVec(vec,tuple):
+def log_prob_classGivenVec(vec,tuple):
     #Step 1: -0.5 * (vec - mean)
     diff = (vec - tuple[0])
     step1 = (diff) * -0.5
@@ -54,8 +61,8 @@ def pClassgivenVec(vec,tuple):
     return step5
 
 """Returns an dict with keys vec-number and items (probability classified as class, class)"""
-def gaussFull(f,foldNo):
-    gauss = computeCovs(foldNo)
+def fullGaussFold(f,foldNo):
+    gauss = fullGaussDict(foldNo)
     probs = {}
     #loop through each vector in f
     for i in range(len(f)):
@@ -65,7 +72,7 @@ def gaussFull(f,foldNo):
         prob_temp = 0.0
         #find largest classification.
         for cl_no in range(1, 11):
-            prob_temp = pClassgivenVec(f[i], gauss[cl_no])
+            prob_temp = log_prob_classGivenVec(f[i], gauss[cl_no])
             if (prob_temp > prob_max):
                 prob_max = max(prob_temp, prob_max)
                 tuple = (prob_max, cl_no)
@@ -74,7 +81,7 @@ def gaussFull(f,foldNo):
 
 
 """ Returns an dictionary with key "fold'No'_features", corr. item = dict[vecno] = (probability classified as class, predicted class)"""
-def gaussFullTotal():
+def fullGaussTotal():
     foldNo = 0
     #Dict with keys "fold'No'_features" : items = array [given vector of fold'No'_features, corresponding classification number]
     vClass_dict = {}
@@ -83,7 +90,7 @@ def gaussFullTotal():
         foldname = "fold" + str(foldNo)+"_features"
         f = knn.data.get(foldname)
         start = time.time()
-        vClass_dict[foldname] = gaussFull(f,foldNo)
+        vClass_dict[foldname] = fullGaussFold(f,foldNo)
         end = time.time()
         print("completed "+str(foldNo)+" in time:")
         print(end - start)
@@ -102,7 +109,7 @@ def sharedCov(foldNo):
     return cov * 0.1
 
 """Generates a dict with keys classNo and corresponding values. Values = (Cov, mean, Inv(Cov), logdet(Cov))"""
-def sharedCovTotal(foldNo):
+def sharedGaussDict(foldNo):
     dict = classDict(foldNo)
     cov = sharedCov(foldNo)
     inv_temp = sp.linalg.inv(cov,False,True)
@@ -114,13 +121,13 @@ def sharedCovTotal(foldNo):
         print("Completed computing shared gaussianModel of class" + str(key))
     return gaussdict
 
-"""This function is identical to the pClassGivenVec"""
+"""This function is identical to the pClassGivenVec, except that we do not compute Step 4"""
 def linearDiscrim(vec,tuple):
-    return pClassgivenVec(vec,tuple)
+    return log_prob_classGivenVec(vec,tuple)
 
 """Returns an dict with keys vec-number and items (probability classified as class, class)"""
 def sharedGauss(f,foldNo):
-    gauss = sharedCovTotal(foldNo)
+    gauss = sharedGaussDict(foldNo)
     probs = {}
     #loop through each vector in f
     for i in range(len(f)):
@@ -153,12 +160,13 @@ def sharedGaussTotal():
         print(end - start)
     return vClass_dict
 
+
 """----------------------------CREATION OF CONFUSION MATRIX----------------------------"""
 """Builds the confusionMatrix using dict recovered from dict with key "foldno_features" and prob. of item in tuple[1]"""
 def getConfMatrix(dicts):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
+    matrix = [zlist for i in range(10)]
     for key in dicts.keys():
         for i in (range(0,5000)):
             classskey = key[:-8] + "classes"
@@ -169,7 +177,7 @@ def getConfMatrix(dicts):
             matrix[real_class][predicted_class] += 1
     return matrix
 
-#Returns the total classification accuracy for knn-classification
+#Returns the total classification accuracy for gaussian classification
 def confMatrixAcc(conf_matrix):
     sum = 0.0
     for i in range(len(conf_matrix)):
@@ -177,23 +185,13 @@ def confMatrixAcc(conf_matrix):
     return sum / 50000.0
 
 
-"""Sums up the accuracies of foldloglikehood and returns"""
-def sharedCovGaussAcc(f,foldNo):
-    tupledict = sharedGauss(f,foldNo)
-    j = 1
-    for i in range(len(f)):
-        real_class = knn.data["fold"+str(foldNo)+"_classes"][i]
-        if (tupledict[str(i+1)][1] == real_class[0]):
-            j += 1
-    return j/5000.0
+"""All at once"""
+def gaussAll():
+    gauss_shared_conf = getConfMatrix(sharedGaussTotal())
+    gauss_full_conf = getConfMatrix(fullGaussTotal())
+    gauss_shared_acc = confMatrixAcc(gauss_shared_conf)
+    gauss_full_acc = confMatrixAcc(gauss_full_conf)
 
-#Used for testing
-f1 = knn.data.get("fold1_features")
-v1 = f1[0]
-def main():
-    m1 = np.asmatrix([[4.,2.,0.6],
-                     [4.2,2.1,0.59],
-                     [3.9,2.,0.58],
-                     [4.3,2.1,0.62],
-                     [4.1,2.2,0.63]])
-    return sharedCovGaussAcc(f1,1)
+
+m1 = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
+m2 = [zlist for i in range(10)]
