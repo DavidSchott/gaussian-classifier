@@ -7,14 +7,13 @@ import time
 #Dict containing data
 data = scipy.io.loadmat("cifar10.mat")
 #Arrays containing predicted class
-zlist = [0,0,0,0,0,0,0,0,0,0]
 knn1_dict = {}
 knn3_dict = {}
 knn5_dict = {}
 
-knn1_conf = [zlist for i in range(10)]
-knn3_conf = [zlist for i in range(10)]
-knn5_conf = [zlist for i in range(10)]
+knn1_conf = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
+knn3_conf = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
+knn5_conf = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
 knn1_acc = 0.0
 knn3_acc = 0.0
 knn5_acc = 0.0
@@ -67,7 +66,6 @@ def getAllDistances(f1,f1foldNo):
         f = data.get(fkey)
         f1_fdists = fastdist(f1,f)
         distdict[fkey] = f1_fdists
-        print("Completed computing distances of: "+ fkey) # used for testing
     return distdict
 
 #Returns the total classification accuracy for a given confusion matrix
@@ -107,7 +105,6 @@ def computeFoldClasses1(f1,f1foldNo):
                 fvec_index = fvec_index + 1
         vArr[f1vec_index] = (f1[f1vec_index],classes[foldNo_perm-1][fvecNo_perm])
         f1vec_index = f1vec_index + 1
-        print("Vector "+str(f1vec_index) + " completed of fold_class: "+ str(f1foldNo)) #used for testing
     return vArr
 
 """ Returns an dictionary with key "fold'No'_features", corr. item = array of size 5000 [vector of fold'No'_features, classification number]"""
@@ -122,7 +119,6 @@ def knn1():
         start = time.time()
         vClass_dict[foldname] = computeFoldClasses1(f,foldNo)
         end = time.time()
-        print("completed "+str(foldNo)+" in time:")
         print(end - start)
     return vClass_dict
 
@@ -130,7 +126,7 @@ def knn1():
 def knn1ConfMatrix(dict):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [zlist for i in range(10)]
+    matrix = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
     for key in dict.keys():
         i = 0
         for tuple in dict[key]: #tuple = dict["fold1_features"][0] , real_class = data
@@ -187,7 +183,6 @@ def computeFoldClasses5(f1,f1foldNo):
                 fvec_index = fvec_index + 1
         vArr[f1vec_index] = most_frequent_class([l1,l2,l3,l4,l5])
         f1vec_index = f1vec_index + 1
-        print("Vector "+str(f1vec_index) + " completed of fold_class: "+str(f1foldNo)) #used for testing
     return vArr
 
 
@@ -210,7 +205,7 @@ def knn5():
 def knn5ConfMatrix(dict):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [zlist for i in range(10)]
+    matrix = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
     for key in dict.keys():
         i = 0
         for class_no in dict[key]: #class_no = dict["fold1_features"][i]
@@ -258,7 +253,6 @@ def computeFoldClasses3(f1,f1foldNo):
                 fvec_index = fvec_index + 1
         vArr[f1vec_index] = most_frequent_class([l1,l2,l3])
         f1vec_index = f1vec_index + 1
-        print("Vector "+str(f1vec_index) + " completed of fold_class: "+str(f1foldNo)) #used for testing
     return vArr
 
 
@@ -281,7 +275,7 @@ def knn3():
 def knn3ConfMatrix(dict):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [zlist for i in range(10)]
+    matrix = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
     for key in dict.keys():
         i = 0
         for class_no in dict[key]: #class_no = dict["fold1_features"][i]
@@ -291,7 +285,6 @@ def knn3ConfMatrix(dict):
             matrix[real_class-1][predicted_class-1] += 1
             i +=1
     return matrix
-
 
 
 """For all KNN-Classifications at once"""
@@ -345,7 +338,6 @@ def computeFoldClassesAll(f1,f1foldNo):
         knn3_arr[f1vec_index] = most_frequent_class([l1,l2,l3])
         knn1_arr[f1vec_index] = l1[0]
         f1vec_index = f1vec_index + 1
-        print("Vector "+str(f1vec_index) + " completed of fold_class: "+str(f1foldNo)) #used for testing
 
 
 # Returns Dict with keys "fold'No'_features" : items = tuple ([class of closest point], [class of 2nd closest point]...)
@@ -364,11 +356,11 @@ def knnAll():
         print("completed "+str(foldNo)+" in time:")
         print(end - start)
 
-"""Takes the dictionary returned from knn1() and builds a confusion matrix."""
+"""Takes the dictionary returned from knn and builds a confusion matrix."""
 def confMatrix(dict):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [zlist for i in range(10)]
+    matrix = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
     for key in dict.keys():
         i = 0
         for class_no in dict[key]: #class_no = dict["fold1_features"][i]
@@ -381,6 +373,9 @@ def confMatrix(dict):
 
 """Builds a confusion Matrix for knn1, knn3, knn5 classification"""
 def confMatrixAll():
+    global knn1_conf
+    global knn3_conf
+    global knn5_conf
     knn1_conf = confMatrix(knn1_dict)
     knn3_conf = confMatrix(knn3_dict)
     knn5_conf = confMatrix(knn5_dict)
@@ -388,6 +383,9 @@ def confMatrixAll():
 
 """Stores all accuracies into the global variables for each knn-classification"""
 def getAccAll():
+    global knn1_acc
+    global knn3_acc
+    global knn5_acc
     knn1_acc = predAcc(knn1_conf)
     knn3_acc = predAcc(knn3_conf)
     knn5_acc = predAcc(knn5_conf)
