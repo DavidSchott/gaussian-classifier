@@ -4,10 +4,8 @@ import numpy as np
 import knn,time, MyMean,MyCov
 import scipy as sp
 
-zlist = [0,0,0,0,0,0,0,0,0,0]
-
-gauss_shared_conf = [zlist for i in range(10)]
-gauss_full_conf = [zlist for i in range(10)]
+gauss_shared_conf = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
+gauss_full_conf = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
 
 gauss_shared_acc = 0.0
 gauss_full_acc = 0.0
@@ -39,7 +37,6 @@ def fullGaussDict(foldNo):
         inv_temp = sp.linalg.inv(cov_temp,False,True)
         (sign, logdet) = np.linalg.slogdet(cov_temp)
         gaussdict[key] = (mean_temp,cov_temp,inv_temp,logdet)
-        print("Completed computing gaussianModel of class" + str(key))
     return gaussdict
 
 def log_prob_classGivenVec(vec,tuple):
@@ -118,7 +115,6 @@ def sharedGaussDict(foldNo):
     for key in dict.keys():
         mean_temp = MyMean.mean(dict[key])
         gaussdict[key] = (mean_temp,cov,inv_temp,logdet)
-        print("Completed computing shared gaussianModel of class" + str(key))
     return gaussdict
 
 """This function is identical to the pClassGivenVec, except that we do not compute Step 4"""
@@ -166,7 +162,7 @@ def sharedGaussTotal():
 def getConfMatrix(dicts):
     # Rows = class i, 1-10
     # columns = classified as class j
-    matrix = [zlist for i in range(10)]
+    matrix = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
     for key in dicts.keys():
         for i in (range(0,5000)):
             classskey = key[:-8] + "classes"
@@ -187,11 +183,11 @@ def confMatrixAcc(conf_matrix):
 
 """All at once"""
 def gaussAll():
+    global gauss_shared_conf
+    global gauss_full_conf
+    global gauss_shared_acc
+    global gauss_full_acc
     gauss_shared_conf = getConfMatrix(sharedGaussTotal())
     gauss_full_conf = getConfMatrix(fullGaussTotal())
     gauss_shared_acc = confMatrixAcc(gauss_shared_conf)
     gauss_full_acc = confMatrixAcc(gauss_full_conf)
-
-
-m1 = [[0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0], [0,0,0,0,0,0,0,0,0,0]]
-m2 = [zlist for i in range(10)]
