@@ -286,76 +286,6 @@ def knn3ConfMatrix(dict):
             i +=1
     return matrix
 
-
-"""For all KNN-Classifications at once"""
-#Arrays containing predicted classes
-knn1_arr = np.empty(5000, dtype=object)
-knn3_arr = np.empty(5000, dtype=object)
-knn5_arr = np.empty(5000, dtype=object)
-"""Returns an 5000 array of list of the form (estimated fold_class of corresponding vector in f1)"""
-def computeFoldClassesAll(f1,f1foldNo):
-    dists_dict = getAllDistances(f1,f1foldNo)
-    f1vec_index = 0
-    while (f1vec_index < 5000):
-        #initialize/reset all necessary variables for closest vector
-        min_dist = float('inf')
-        l1 = [min_dist, 0]  # (distance of point, predicted class)
-        l2 = l1
-        l3 = l1
-        l4 = l1
-        l5 = l1
-        foldNo = 0
-        while (foldNo < 10):
-            foldNo = foldNo + 1
-            if(foldNo == f1foldNo and f1foldNo == 10):
-                break
-            if (foldNo == f1foldNo):
-                foldNo = foldNo + 1
-            #Gather dict for current fold
-            fkey = "fold"+str(foldNo)+"_features"
-            f_dists = dists_dict[fkey]
-            fvec_index = 0
-            """iterate through dict to find closest 5 points"""
-            for dist in f_dists[f1vec_index]: #for vector 0
-                if (dist <= l1[0]):
-                    l1[0] = dist
-                    l1[1] = classes[foldNo-1][fvec_index]
-                elif (dist > l1[0] and dist < l2[0]):
-                    l2[0] = dist
-                    l2[1] = classes[foldNo-1][fvec_index]
-
-                elif (dist > l2[0] and dist < l3[0]):
-                    l3[0] = dist
-                    l3[1] = classes[foldNo-1][fvec_index]
-                elif (dist > l3[0] and dist < l4[0]):
-                    l4[0] = dist
-                    l4[1] = classes[foldNo-1][fvec_index]
-                elif (dist > l4[0] and dist < l5[0]):
-                    l5[0] = dist
-                    l5[1] = classes[foldNo-1][fvec_index]
-                fvec_index = fvec_index + 1
-        knn5_arr[f1vec_index] = most_frequent_class([l1,l2,l3,l4,l5])
-        knn3_arr[f1vec_index] = most_frequent_class([l1,l2,l3])
-        knn1_arr[f1vec_index] = l1[0]
-        f1vec_index = f1vec_index + 1
-
-
-# Returns Dict with keys "fold'No'_features" : items = tuple ([class of closest point], [class of 2nd closest point]...)
-def knnAll():
-    foldNo = 0
-    while (foldNo < 10):
-        foldNo = foldNo + 1
-        foldname = "fold" + str(foldNo)+"_features"
-        f = data.get(foldname)
-        start = time.time()
-        computeFoldClassesAll(f,foldNo)
-        knn1_dict[foldname] = knn1_arr
-        knn3_dict[foldname] = knn3_arr
-        knn5_dict[foldname] = knn5_arr
-        end = time.time()
-        print("completed "+str(foldNo)+" in time:")
-        print(end - start)
-
 """Takes the dictionary returned from knn and builds a confusion matrix."""
 def confMatrix(dict):
     # Rows = class i, 1-10
@@ -370,25 +300,6 @@ def confMatrix(dict):
             matrix[real_class-1][predicted_class-1] += 1
             i +=1
     return matrix
-
-"""Builds a confusion Matrix for knn1, knn3, knn5 classification"""
-def confMatrixAll():
-    global knn1_conf
-    global knn3_conf
-    global knn5_conf
-    knn1_conf = confMatrix(knn1_dict)
-    knn3_conf = confMatrix(knn3_dict)
-    knn5_conf = confMatrix(knn5_dict)
-
-
-"""Stores all accuracies into the global variables for each knn-classification"""
-def getAccAll():
-    global knn1_acc
-    global knn3_acc
-    global knn5_acc
-    knn1_acc = predAcc(knn1_conf)
-    knn3_acc = predAcc(knn3_conf)
-    knn5_acc = predAcc(knn5_conf)
 
 """Additional useful methods:"""
 """Given a list of tuples of form(dictance, class),
